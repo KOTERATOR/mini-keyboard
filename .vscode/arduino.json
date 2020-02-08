@@ -1,0 +1,5 @@
+{
+    "sketch": "mini_keyboard.ino",
+    "board": "arduino:avr:leonardo",
+    "port": "COM5"
+}
