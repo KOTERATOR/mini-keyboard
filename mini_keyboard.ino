@@ -7,7 +7,7 @@ const int KEYS_COUNT = ROWS_COUNT * COLUMNS_COUNT;
 
 const byte columns [] = { A0, A1, A2, A3 }, rows [] = { A9, A8 };
 
-bool states [KEYS_COUNT] = {};
+bool states [COLUMNS_COUNT][ROWS_COUNT] = {};
 
 Adafruit_SSD1306 display(128, 32);
 
@@ -16,6 +16,7 @@ int start_x = (128 - 16 * COLUMNS_COUNT) / 2;
 void setup()
 {
 	Keyboard.begin();
+    Serial.begin(115200);
     delay(2000);
     for (int i = 0; i < COLUMNS_COUNT; i++)
     {
@@ -25,9 +26,12 @@ void setup()
     {
         pinMode(rows[i], INPUT_PULLUP);
     }
-    for (int i = 0; i < KEYS_COUNT; i++)
+    for (int i = 0; i < COLUMNS_COUNT; i++)
     {
-        states[i] = false;
+        for (int j = 0; j < ROWS_COUNT; j++)
+        {
+            states[i][j] = false;
+        }
     }
     display.begin();
     display.setRotation(2);
@@ -45,7 +49,7 @@ void update_display()
         {
             int x = start_x + i * 16, y = j * 16;
             
-            if (states[j * COLUMNS_COUNT + i])
+            if (states[i][j])
             {
                 display.fillRect(x, y, 16, 16, WHITE);
             }
@@ -66,10 +70,11 @@ void loop()
         digitalWrite(columns[i], 0);
         for (int j = 0; j < ROWS_COUNT; j++)
         {
-            if (!digitalRead(rows[j]))
+            bool state = digitalRead(rows[j]);
+            if (!state)
             {
-                bool prev_state = states[j * COLUMNS_COUNT + i];
-                states[j * COLUMNS_COUNT + i] = true;
+                bool prev_state = states[i][j];
+                states[i][j] = true;
                 if (!prev_state)
                 {
                     Keyboard.println(String(j * COLUMNS_COUNT + i));
@@ -77,14 +82,13 @@ void loop()
             }
             else
             {
-                states[j * COLUMNS_COUNT + i] = false;
+                states[i][j] = false;
             }
         }
         pinMode(columns[i], INPUT);
         digitalWrite(columns[i], 1);
         
     }
-
     update_display();
 
     delay(50);
